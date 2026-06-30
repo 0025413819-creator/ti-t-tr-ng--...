@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khử trùng vs Tiệt trùng — Nguyễn Thanh Phong</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f7f6f2;--card:#ffffff;--border:#e2e0d8;--text:#2c2c2a;--sub:#888780;--panel:#f0ede5;
+  --khu-a:#1a6bb5;--khu-b:#d63030;--khu-c:#217a3e;--spore:#b87414;
+  --tiet-a:#4a3fb5;--tiet-b:#c0451e;--tiet-c:#1a7a5a;
+}
+body.dark{
+  --bg:#0f0f0c;--card:#1a1a14;--border:#2e2e22;--text:#e8e6de;--sub:#6e6d66;--panel:#181812;
+  --khu-a:#5499e0;--khu-b:#f07070;--khu-c:#4dc47a;--spore:#e8a830;
+  --tiet-a:#9088f0;--tiet-b:#e87050;--tiet-c:#40c090;
+}
+
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  transition:background .3s,color .3s;
+  min-height:100vh;padding:16px 12px 24px;
+}
+
+.page{max-width:720px;margin:0 auto}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.author{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
+.theme-toggle{display:flex;background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.tt-btn{padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--sub);transition:all .2s}
+.tt-btn.active{background:var(--text);color:var(--bg)}
+
+/* TITLE */
+.title-row{text-align:center;margin-bottom:14px}
+.title-row h1{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.title-row p{font-size:12px;color:var(--sub)}
+
+/* CONTROLS */
+.ctrls{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;justify-content:center}
+.cbtn{padding:7px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);
+  color:var(--text);font-size:13px;cursor:pointer;transition:all .18s;font-weight:600}
+.cbtn:hover{opacity:.85}
+.cbtn.go-khu{background:#1a6bb5;border-color:#1a6bb5;color:#fff}
+body.dark .cbtn.go-khu{background:#3a7ed0;border-color:#3a7ed0}
+.cbtn.go-tiet{background:#4a3fb5;border-color:#4a3fb5;color:#fff}
+body.dark .cbtn.go-tiet{background:#6860d8;border-color:#6860d8}
+.cbtn.go-both{background:#222;border-color:#222;color:#fff}
+body.dark .cbtn.go-both{background:#e8e6de;border-color:#e8e6de;color:#0f0f0c}
+.cbtn.rst:hover{color:#d63030;border-color:#d63030;background:var(--card)}
+
+/* SLIDERS */
+.sliders{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.srow{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--sub)}
+.slabel{min-width:90px;font-weight:500}
+.srow input[type=range]{flex:1;height:4px;accent-color:#4a7fc4;cursor:pointer}
+.sval{min-width:28px;text-align:right;font-weight:600;color:var(--text);font-size:12px}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px;padding:0 2px;font-size:12px;color:var(--sub)}
+.li{display:flex;align-items:center;gap:5px}
+.ld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ld.spore{border-radius:50%;outline:1.5px dashed var(--spore);outline-offset:2px}
+
+/* PANELS */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:480px){.panels{grid-template-columns:1fr}}
+.panel{border-radius:14px;border:1px solid var(--border);background:var(--card);overflow:hidden;transition:background .3s,border-color .3s}
+.ph{padding:10px 14px 9px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.pdot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ptitle{font-size:14px;font-weight:700;color:var(--text)}
+.psub{font-size:11px;color:var(--sub);margin-left:auto}
+canvas{display:block;width:100%;height:210px}
+.pfoot{padding:8px 13px;border-top:1px solid var(--border);font-size:11px;color:var(--sub);
+  min-height:34px;display:flex;align-items:center;gap:7px;font-weight:500}
+.fdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* COMPARE TABLE */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+@media(max-width:480px){.compare{grid-template-columns:1fr}}
+.ccard{border-radius:12px;padding:12px 14px;border:1px solid var(--border);background:var(--panel)}
+.ccard h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;color:var(--sub)}
+.ccard p{font-size:12px;color:var(--text);line-height:1.6}
+.tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;margin-left:4px;letter-spacing:.04em}
+.tag-khu{background:#dceefb;color:#0c447c}
+body.dark .tag-khu{background:#0c2e4a;color:#85b7eb}
+.tag-tiet{background:#eeedfe;color:#3c3489}
+body.dark .tag-tiet{background:#1e1a4a;color:#afa9ec}
+</style>
+</head>
+<body class="dark">
+<div class="page">
+
+  <div class="topbar">
+    <span class="author">Nguyễn Thanh Phong</span>
+    <div class="theme-toggle">
+      <button class="tt-btn" id="btnLight" onclick="setTheme(false)">☀ Sáng</button>
+      <button class="tt-btn active" id="btnDark" onclick="setTheme(true)">● Tối</button>
+    </div>
+  </div>
+
+  <div class="title-row">
+    <h1>Khử trùng &amp; Tiệt trùng</h1>
+    <p>Mô phỏng so sánh quá trình tiêu diệt vi sinh vật</p>
+  </div>
+
+  <div class="ctrls">
+    <button class="cbtn go-khu" onclick="run('khu')">▶ Khử trùng</button>
+    <button class="cbtn go-tiet" onclick="run('tiet')">▶ Tiệt trùng</button>
+    <button class="cbtn go-both" onclick="run('both')">⚡ So sánh</button>
+    <button class="cbtn rst" onclick="resetAll()">↺ Đặt lại</button>
+  </div>
+
+  <div class="sliders">
+    <div class="srow">
+      <span class="slabel">Số vi sinh vật</span>
+      <input type="range" id="slCount" min="10" max="60" value="32" step="1" oninput="updateLabel(this,'lbCount')">
+      <span class="sval" id="lbCount">32</span>
+    </div>
+    <div class="srow">
+      <span class="slabel">Tốc độ</span>
+      <input type="range" id="slSpeed" min="1" max="6" value="2" step="1" oninput="updateLabel(this,'lbSpeed')">
+      <span class="sval" id="lbSpeed">2</span>
+    </div>
+    <div class="srow">
+      <span class="slabel">Cỡ vi sinh vật</span>
+      <input type="range" id="slSize" min="3" max="12" value="6" step="1" oninput="updateLabel(this,'lbSize')">
+      <span class="sval" id="lbSize">6</span>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="li"><div class="ld" style="background:var(--khu-a)"></div>Vi khuẩn</div>
+    <div class="li"><div class="ld" style="background:var(--khu-b)"></div>Virus</div>
+    <div class="li"><div class="ld" style="background:var(--khu-c)"></div>Nấm</div>
+    <div class="li"><div class="ld spore" style="background:var(--spore)"></div>Bào tử</div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="ph">
+        <div class="pdot" style="background:#1a6bb5"></div>
+        <span class="ptitle">Khử trùng</span>
+        <span class="psub">Disinfection</span>
+      </div>
+      <canvas id="ck"></canvas>
+      <div class="pfoot" id="fk">
+        <div class="fdot" style="background:var(--border)"></div>Nhấn "Khử trùng" để bắt đầu
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph">
+        <div class="pdot" style="background:#4a3fb5"></div>
+        <span class="ptitle">Tiệt trùng</span>
+        <span class="psub">Sterilization</span>
+      </div>
+      <canvas id="ct"></canvas>
+      <div class="pfoot" id="ft">
+        <div class="fdot" style="background:var(--border)"></div>Nhấn "Tiệt trùng" để bắt đầu
+      </div>
+    </div>
+  </div>
+
+  <div class="compare">
+    <div class="ccard">
+      <h4>Khử trùng <span class="tag tag-khu">Disinfection</span></h4>
+      <p>Tiêu diệt vi khuẩn, virus, nấm — nhưng <strong>không triệt để với bào tử</strong>. Dùng hóa chất hoặc tia UV. Phù hợp làm sạch bề mặt thông thường.</p>
+    </div>
+    <div class="ccard">
+      <h4>Tiệt trùng <span class="tag tag-tiet">Sterilization</span></h4>
+      <p>Tiêu diệt <strong>hoàn toàn mọi vi sinh vật</strong> kể cả bào tử. Dùng hơi áp suất cao (121°C), nhiệt độ cao. Bắt buộc với dụng cụ y tế.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function setTheme(d){
+  document.body.className = d ? 'dark' : '';
+  document.getElementById('btnLight').className = d ? 'tt-btn' : 'tt-btn active';
+  document.getElementById('btnDark').className  = d ? 'tt-btn active' : 'tt-btn';
+}
+
+function updateLabel(el, id){ document.getElementById(id).textContent = el.value; }
+
+function css(v){ return getComputedStyle(document.body).getPropertyValue('--'+v).trim(); }
+
+const TYPES = [
+  {name:'bacteria', ck:'khu-a', ct:'tiet-a', shape:'rod'},
+  {name:'virus',    ck:'khu-b', ct:'tiet-b', shape:'star'},
+  {name:'fungi',    ck:'khu-c', ct:'tiet-c', shape:'oval'},
+  {name:'spore',    ck:'spore', ct:'spore',  shape:'hex'},
+];
+
+function makeParticles(cv, mode){
+  const n   = parseInt(document.getElementById('slCount').value);
+  const spd = parseFloat(document.getElementById('slSpeed').value);
+  const sz  = parseInt(document.getElementById('slSize').value);
+  const W = cv.offsetWidth || 340, H = 210;
+  cv.width  = W * devicePixelRatio;
+  cv.height = H * devicePixelRatio;
+  const ctx = cv.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+
+  const counts = [Math.round(n*.4), Math.round(n*.3), Math.round(n*.2), Math.round(n*.1)];
+  const parts = [];
+  TYPES.forEach((t,ti)=>{
+    for(let i=0;i<counts[ti];i++){
+      const a = Math.random()*Math.PI*2;
+      const v = (.4+Math.random()*.8)*spd;
+      parts.push({
+        ti, shape:t.shape,
+        ck:t.ck, ct:t.ct,
+        x: sz*2+Math.random()*(W-sz*4),
+        y: sz*2+Math.random()*(H-sz*4),
+        vx: Math.cos(a)*v, vy: Math.sin(a)*v,
+        r: sz+(Math.random()-.5)*2,
+        rot: Math.random()*Math.PI*2,
+        rotV:(Math.random()-.5)*.05,
+        alive:true, dying:false, dyingT:0, dyingD:35+Math.random()*30,
+        wobble:Math.random()*Math.PI*2,
+        sparkT:0,
+      });
+    }
+  });
+  return {parts, ctx, W, H};
+}
+
+function getCol(p, mode){
+  return css(mode==='khu' ? p.ck : p.ct);
+}
+
+function drawP(ctx, p, mode, W, H){
+  const r=p.r;
+  let al=1;
+  if(p.dying){ al=Math.max(0,1-p.dyingT/p.dyingD); }
+  if(!p.alive&&!p.dying){
+    ctx.save();
+    ctx.globalAlpha=.15;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,r*.35,0,Math.PI*2);
+    ctx.fillStyle='#888';
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+  const col = getCol(p, mode);
+  ctx.save();
+  ctx.globalAlpha=al;
+  ctx.translate(p.x,p.y);
+  ctx.rotate(p.rot);
+
+  if(p.shape==='rod'){
+    ctx.beginPath();
+    ctx.ellipse(0,0,r*1.6,r*.72,0,0,Math.PI*2);
+    ctx.fillStyle=col;
+    ctx.fill();
+    ctx.globalAlpha=al*.45;
+    ctx.strokeStyle=col; ctx.lineWidth=1;
+    ctx.stroke();
+    ctx.globalAlpha=al*.25;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.ellipse(-r*.3,-r*.22,r*.38,r*.22,0,0,Math.PI*2);
+    ctx.fill();
+  } else if(p.shape==='star'){
+    ctx.beginPath();
+    for(let i=0;i<8;i++){
+      const a2=Math.PI/4*i;
+      const rr=i%2===0?r:r*.4;
+      i===0?ctx.moveTo(rr*Math.cos(a2),rr*Math.sin(a2))
+           :ctx.lineTo(rr*Math.cos(a2),rr*Math.sin(a2));
+    }
+    ctx.closePath();
+    ctx.fillStyle=col; ctx.fill();
+    ctx.globalAlpha=al*.35;
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(0,0,r*.32,0,Math.PI*2); ctx.fill();
+  } else if(p.shape==='oval'){
+    ctx.beginPath();
+    ctx.ellipse(0,0,r,r*1.55,0,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.globalAlpha=al*.22;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.ellipse(-r*.2,-r*.4,r*.28,r*.38,0,0,Math.PI*2);
+    ctx.fill();
+  } else if(p.shape==='hex'){
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      const a2=Math.PI/3*i-Math.PI/6;
+      i===0?ctx.moveTo(r*Math.cos(a2),r*Math.sin(a2))
+           :ctx.lineTo(r*Math.cos(a2),r*Math.sin(a2));
+    }
+    ctx.closePath();
+    ctx.fillStyle=col; ctx.fill();
+    ctx.globalAlpha=al*.6;
+    ctx.strokeStyle=col; ctx.lineWidth=1.2;
+    ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.globalAlpha=al*.18;
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(0,0,r*.35,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalAlpha=1;
+}
+
+function drawWave(ctx,W,H,progress,col){
+  if(progress<=0) return;
+  const maxR=Math.hypot(W,H)*1.1;
+  const g=ctx.createRadialGradient(W/2,H*.55,0,W/2,H*.55,maxR*progress);
+  g.addColorStop(0,col+'28');
+  g.addColorStop(.65,col+'12');
+  g.addColorStop(1,col+'00');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+
+function drawSparks(ctx,parts,progress){
+  if(progress<.04||progress>.75) return;
+  parts.forEach(p=>{
+    if((!p.alive&&!p.dying)||Math.random()>.05) return;
+    const len=6+Math.random()*14;
+    const a=Math.random()*Math.PI*2;
+    ctx.save();
+    ctx.globalAlpha=.5*(1-progress/0.75);
+    ctx.strokeStyle='#fff'; ctx.lineWidth=.8;
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y);
+    ctx.lineTo(p.x+Math.cos(a)*len,p.y+Math.sin(a)*len);
+    ctx.stroke();
+    ctx.restore();
+  });
+}
+
+function Panel(canvasId, footId, keepSpore, mode, waveHex){
+  let st=null, raf=null, waveP=0;
+
+  function init(){
+    if(raf){cancelAnimationFrame(raf);raf=null;}
+    const cv=document.getElementById(canvasId);
+    st=makeParticles(cv,mode);
+    waveP=0;
+  }
+
+  function setFoot(html){
+    document.getElementById(footId).innerHTML=html;
+  }
+
+  function updateFoot(){
+    if(!st) return;
+    const alive=st.parts.filter(p=>p.alive&&!p.dying);
+    const spores=alive.filter(p=>p.ti===3);
+    if(mode==='khu'){
+      if(alive.length===0){
+        setFoot('<div class="fdot" style="background:#2d8a4e"></div>Hoàn tất — bào tử vẫn còn sống sót!');
+      } else if(spores.length>0){
+        setFoot(`<div class="fdot" style="background:#b87414"></div>Đang khử... còn ${alive.length} vi sinh vật (có bào tử)`);
+      } else {
+        setFoot(`<div class="fdot" style="background:#1a6bb5"></div>Đang khử... còn ${alive.length} vi sinh vật`);
+      }
+    } else {
+      if(alive.length===0){
+        setFoot('<div class="fdot" style="background:#4a3fb5"></div>Tiệt trùng hoàn toàn — không còn gì sống!');
+      } else {
+        setFoot(`<div class="fdot" style="background:#d63030"></div>Đang tiệt trùng... còn ${alive.length} vi sinh vật`);
+      }
+    }
+  }
+
+  function loop(){
+    const {parts,ctx,W,H}=st;
+    ctx.clearRect(0,0,W,H);
+    if(waveP<1) waveP+=.01;
+    drawWave(ctx,W,H,waveP,waveHex);
+    drawSparks(ctx,parts,waveP);
+    parts.forEach(p=>{
+      if(p.alive){
+        p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
+        p.wobble+=.07; p.vy+=Math.sin(p.wobble)*.018;
+        if(p.x<p.r||p.x>W-p.r) p.vx*=-1;
+        if(p.y<p.r||p.y>H-p.r) p.vy*=-1;
+      }
+      if(p.dying){ p.dyingT++; if(p.dyingT>=p.dyingD){p.dying=false;p.alive=false;} }
+      drawP(ctx,p,mode,W,H);
+    });
+    raf=requestAnimationFrame(loop);
+  }
+
+  function idleLoop(){
+    const {parts,ctx,W,H}=st;
+    ctx.clearRect(0,0,W,H);
+    parts.forEach(p=>{
+      p.x+=p.vx*.4; p.y+=p.vy*.4; p.rot+=p.rotV*.5;
+      if(p.x<p.r||p.x>W-p.r) p.vx*=-1;
+      if(p.y<p.r||p.y>H-p.r) p.vy*=-1;
+      drawP(ctx,p,mode,W,H);
+    });
+    raf=requestAnimationFrame(idleLoop);
+  }
+
+  return {
+    start(){
+      init(); loop();
+      const spd=parseFloat(document.getElementById('slSpeed').value);
+      const killNonSpore=()=>{
+        if(!st) return;
+        st.parts.forEach(p=>{ if(p.ti!==3&&p.alive){p.dying=true;p.dyingT=0;} });
+        updateFoot();
+      };
+      const killSpore=()=>{
+        if(!st||keepSpore) return;
+        st.parts.forEach(p=>{ if(p.ti===3&&p.alive){p.dying=true;p.dyingT=0;} });
+        updateFoot();
+      };
+      setTimeout(killNonSpore, 700/spd);
+      setTimeout(killSpore, 2200/spd);
+      updateFoot();
+      const iv=setInterval(()=>{
+        if(!st){clearInterval(iv);return;}
+        updateFoot();
+        const alive=st.parts.filter(p=>p.alive&&!p.dying);
+        if(alive.length===0) clearInterval(iv);
+      },350);
+    },
+    reset(){
+      init(); idleLoop();
+      setFoot('<div class="fdot" style="background:var(--border)"></div>Chờ kích hoạt');
+    }
+  };
+}
+
+const PK=Panel('ck','fk',true,'khu','#1a6bb5');
+const PT=Panel('ct','ft',false,'tiet','#4a3fb5');
+
+window.addEventListener('load',()=>{ PK.reset(); PT.reset(); });
+window.addEventListener('resize',()=>{ PK.reset(); PT.reset(); });
+
+function run(mode){
+  if(mode==='khu'||mode==='both') PK.start();
+  if(mode==='tiet'||mode==='both') PT.start();
+  if(mode==='khu') PT.reset();
+  if(mode==='tiet') PK.reset();
+}
+function resetAll(){ PK.reset(); PT.reset(); }
+</script>
+</body>
+</html>
